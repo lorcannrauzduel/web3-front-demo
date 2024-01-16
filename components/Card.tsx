@@ -1,53 +1,33 @@
 'use client';
-import { ABI } from '@/constantes/abi';
-import { CONTRACT_ADDRESS } from '@/constantes/contract';
-import { Contract, parseEther } from 'ethers';
-import { BrowserProvider } from 'ethers';
+import { useContract } from '@/hooks/useContract';
 import { useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
 
-export const Card = ({ id, title, description, assetUrl, price }) => {
+export interface CardProps {
+	id: number;
+	title: string;
+	description: string;
+	assetUrl: string;
+	price: string;
+}
+
+export const Card: React.FC<CardProps> = ({
+	id,
+	title,
+	description,
+	assetUrl,
+	price,
+}) => {
+	const { mint, mintIsPending, checkIfNftSold } = useContract();
 	const [isSold, setIsSold] = useState(false);
-	const [loading, setLoading] = useState(false);
-
-	const checkIfSold = async (tokenId: number) => {
-		try {
-			const provider = new BrowserProvider(window.ethereum);
-			const contract = new Contract(CONTRACT_ADDRESS, ABI, provider);
-			const owner = await contract.ownerOf(tokenId);
-			const isSold = owner !== CONTRACT_ADDRESS;
-			setIsSold(isSold);
-        } catch (error) {
-            setIsSold(false);
-        }
-	};
-
-	const handleBuy = async () => {
-		try {
-			const provider = new BrowserProvider(window.ethereum);
-			const signer = await provider.getSigner();
-			const contract = new Contract(CONTRACT_ADDRESS, ABI, signer);
-			const priceInWei = parseEther(price).toString();
-
-			const tx = await contract.mint(id, {
-				value: priceInWei,
-			});
-			setLoading(true);
-
-			await tx.wait();
-			toast.success('You have successfully purchased this NFT');
-			setIsSold(true);
-		} catch (error) {
-			console.log({ error });
-			toast.error('Please try again later');
-		} finally {
-			setLoading(false);
-		}
-	};
 
 	useEffect(() => {
-		checkIfSold(id);
-	}, [id]);
+		const checkIfSold = async () => {
+			const isSold = await checkIfNftSold(id);
+			console.log({ isSold });
+			setIsSold(isSold);
+		};
+		checkIfSold();
+	}, []);
 
 	return (
 		<div className='card w-96 bg-base-100 shadow-xl'>
@@ -64,9 +44,9 @@ export const Card = ({ id, title, description, assetUrl, price }) => {
 					<button
 						className='btn btn-primary'
 						disabled={isSold}
-						onClick={handleBuy}>
+						onClick={() => mint(id, price)}>
 						{isSold ? 'Sold' : 'Buy now'}
-						{loading && (
+						{mintIsPending && (
 							<span className='loading loading-spinner loading-md'></span>
 						)}
 					</button>

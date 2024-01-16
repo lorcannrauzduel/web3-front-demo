@@ -1,27 +1,21 @@
-import { ABI } from '@/constantes/abi';
-import { CONTRACT_ADDRESS } from '@/constantes/contract';
-import { accountState } from '@/store/account';
-import { Contract } from 'ethers';
-import { BrowserProvider } from 'ethers';
+import { useContract } from '@/hooks/useContract';
 import { useState } from 'react';
-import { toast } from 'react-hot-toast';
-import { useRecoilState } from 'recoil';
 
-export const OwnedNFT = ({ id, title, description, assetUrl }) => {
-	const [loading, setLoading] = useState(false);
-	const [account, setAccount] = useRecoilState(accountState);
+export interface OwnedNFTProps {
+	id: number;
+	title: string;
+	description: string;
+	assetUrl: string;
+}
+
+export const OwnedNFT: React.FC<OwnedNFTProps> = ({
+	id,
+	title,
+	description,
+	assetUrl,
+}) => {
 	const [recipient, setRecipient] = useState('');
-
-	const transferNFT = async (tokenId: number, recipient: string) => {
-		const provider = new BrowserProvider(window.ethereum);
-		const signer = await provider.getSigner();
-		const contract = new Contract(CONTRACT_ADDRESS, ABI, signer);
-		const tx = await contract.safeTransferFrom(account, recipient, id);
-		setLoading(true);
-		await tx.wait();
-		setLoading(false);
-		toast.success('You have successfully transferred this NFT');
-	};
+	const { transferIsPending, transferNFT } = useContract();
 
 	return (
 		<div className='card w-96 bg-base-100 shadow-xl'>
@@ -38,12 +32,15 @@ export const OwnedNFT = ({ id, title, description, assetUrl }) => {
 					{/* Open the modal using document.getElementById('ID').showModal() method */}
 					<button
 						className='btn btn-info'
-						onClick={() => document.getElementById('my_modal_1').showModal()}>
+						onClick={() => document.getElementById(id).showModal()}>
 						Transfer
+						{transferIsPending && (
+							<span className='loading loading-spinner loading-md'></span>
+						)}
 					</button>
-					<dialog id='my_modal_1' className='modal'>
+					<dialog id={id.toString()} className='modal'>
 						<div className='modal-box'>
-							<h3 className='font-bold text-lg'>Transfer your NFT</h3>
+							<h3 className='font-bold text-lg'>Transfer your NFT : {title}</h3>
 							<p className='py-4'>
 								Enter the public address of the recipient to transfer your NFT
 							</p>
@@ -60,9 +57,6 @@ export const OwnedNFT = ({ id, title, description, assetUrl }) => {
 										className='btn btn-info'
 										onClick={() => transferNFT(id, recipient)}>
 										Transfer
-										{loading && (
-											<span className='loading loading-spinner loading-md'></span>
-										)}
 									</button>
 								</form>
 							</div>

@@ -1,39 +1,9 @@
 'use client';
 import { OwnedNFT } from '@/components/OwnedNFT';
-import { alchemy } from '@/constantes/alchemy';
-import { CONTRACT_ADDRESS } from '@/constantes/contract';
-import { accountState } from '@/store/account';
-import { BrowserProvider, formatEther, parseEther } from 'ethers';
-import { useEffect, useState } from 'react';
-import { useRecoilState } from 'recoil';
+import { useAccount } from '@/hooks/useAccount';
 
 export default function DashboardPage() {
-	const [account] = useRecoilState(accountState);
-	const [balance, setBalance] = useState<any>(0);
-	const [items, setItems] = useState<any>([]);
-
-	useEffect(() => {
-		const getBalance = async () => {
-			const provider = new BrowserProvider(window.ethereum);
-			const balance = await provider.getBalance(account);
-			// console.log({ balance });
-			const formattedBalance = Number(formatEther(balance)).toFixed(2);
-			console.log({ formattedBalance });
-			setBalance(formattedBalance);
-		};
-
-		const getNFTs = async () => {
-			const response = await alchemy.nft.getNftsForOwner(account, {
-				contractAddresses: [CONTRACT_ADDRESS],
-			});
-			setItems(response.ownedNfts);
-		};
-
-		if (account) {
-			getBalance();
-			getNFTs();
-		}
-	}, [account, balance]);
+	const { balance, nfts } = useAccount();
 
 	return (
 		<>
@@ -57,22 +27,21 @@ export default function DashboardPage() {
 					<div className='stat-value'>{balance} ETH</div>
 				</div>
 			</div>
-			{items.length > 0 ? (
+			{nfts.length > 0 ? (
 				<div className='grid grid-cols-3 gap-4'>
-					{items.map((item: any, index: number) => (
+					{nfts.map((item: any, index: number) => (
 						<OwnedNFT
 							key={index}
 							id={item.tokenId}
 							title={item.name}
 							description={item.description}
-                            assetUrl={item.image.originalUrl}
-                            
+							assetUrl={item.image.originalUrl}
 						/>
 					))}
 				</div>
 			) : (
 				<div className='text text-center'>
-					<p className='text-2xl'>You don't have any NFT yet</p>
+					<p className='text-2xl'>You don&apos;t own any NFTs yet</p>
 				</div>
 			)}
 		</>

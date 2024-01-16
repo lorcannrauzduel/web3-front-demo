@@ -1,8 +1,8 @@
 'use client';
-import { accountState } from '@/store/account';
+import { useAccount } from '@/hooks/useAccount';
+import { formatAddress } from '@/utils/format-address';
 import Link from 'next/link';
 import { useEffect } from 'react';
-import { useRecoilState } from 'recoil';
 
 declare global {
 	interface Window {
@@ -11,24 +11,7 @@ declare global {
 }
 
 export const Navbar = () => {
-	const [account, setAccount] = useRecoilState(accountState);
-
-	const connect = async () => {
-		if (window.ethereum) {
-			try {
-				const accounts = await window.ethereum.request({
-					method: 'eth_requestAccounts',
-				});
-				setAccount(accounts[0]);
-			} catch (error) {
-				console.error(error);
-			}
-		}
-	};
-
-	const formatAddress = (address: string) => {
-		return `${address.slice(0, 6)}...${address.slice(-4)}`;
-	};
+	const { account, setAccount, connect } = useAccount();
 
 	useEffect(() => {
 		if (window.ethereum) {

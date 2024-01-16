@@ -1,6 +1,5 @@
 import { Card } from '@/components/Card';
-import { assets } from '@/constantes/assets';
-import Image from 'next/image';
+import { assets } from '@/mock/assets';
 
 export default function Home() {
 	return (
