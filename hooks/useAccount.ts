@@ -2,7 +2,6 @@ import { alchemy } from '@/config/alchemy';
 import { CONTRACT_ADDRESS } from '@/config/contract';
 import { accountState } from '@/store/account';
 import { nftsState } from '@/store/nfts';
-import { OwnedNft } from 'alchemy-sdk';
 import { BrowserProvider, formatEther } from 'ethers';
 import { useEffect, useState } from 'react';
 import { useRecoilState } from 'recoil';
@@ -17,7 +16,6 @@ export const useAccount = () => {
 			const provider = new BrowserProvider(window.ethereum);
 			const balance = await provider.getBalance(account);
 			const formattedBalance = Number(formatEther(balance)).toFixed(2);
-			console.log({ formattedBalance });
 			setBalance(formattedBalance);
 		};
 		if (account) {

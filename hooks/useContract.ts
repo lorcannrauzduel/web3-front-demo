@@ -1,13 +1,9 @@
 import { ABI } from '@/config/abi';
-import { alchemy } from '@/config/alchemy';
 import { CONTRACT_ADDRESS } from '@/config/contract';
-import { accountState } from '@/store/account';
-import { OwnedNft } from 'alchemy-sdk';
 import { Contract } from 'ethers';
 import { BrowserProvider, parseEther } from 'ethers';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { useRecoilState } from 'recoil';
 import { useAccount } from './useAccount';
 
 export const useContract = () => {
@@ -17,15 +13,21 @@ export const useContract = () => {
 	const { account, getNfts } = useAccount();
 
 	const transferNFT = async (id: number, recipient: string) => {
-		const provider = new BrowserProvider(window.ethereum);
-		const signer = await provider.getSigner();
-		const contract = new Contract(CONTRACT_ADDRESS, ABI, signer);
-		const tx = await contract.safeTransferFrom(account, recipient, id);
-		setTransferIsPending(true);
-		await tx.wait();
-		setTransferIsPending(false);
-		toast.success('You have successfully transferred this NFT');
-		getNfts();
+		try {
+			const provider = new BrowserProvider(window.ethereum);
+			const signer = await provider.getSigner();
+			const contract = new Contract(CONTRACT_ADDRESS, ABI, signer);
+			const tx = await contract.safeTransferFrom(account, recipient, id);
+			setTransferIsPending(true);
+			await tx.wait();
+			toast.success('You have successfully transferred this NFT');
+			getNfts();
+		} catch (error) {
+			console.error({ error });
+			toast.error('Please try again later');
+		} finally {
+			setTransferIsPending(false);
+		}
 	};
 
 	const mint = async (id: number, price: string) => {
@@ -59,7 +61,6 @@ export const useContract = () => {
 			const isSold = owner !== CONTRACT_ADDRESS;
 			return isSold;
 		} catch (error) {
-			console.log({ error });
 			return false;
 		}
 	};

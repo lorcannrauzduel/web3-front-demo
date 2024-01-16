@@ -23,7 +23,6 @@ export const Card: React.FC<CardProps> = ({
 	useEffect(() => {
 		const checkIfSold = async () => {
 			const isSold = await checkIfNftSold(id);
-			console.log({ isSold });
 			setIsSold(isSold);
 		};
 		checkIfSold();
